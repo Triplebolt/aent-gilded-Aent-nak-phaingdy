@@ -59,6 +59,15 @@ public class CharacterizationTest
         AssertItem(UpdateOnce(Normal, sellIn, quality), expectedSellIn, expectedQuality);
     }
 
+    // A null name is not something the inventory produces today, but the
+    // original implementation tolerated it (every check was a != against a
+    // literal), so the refactor has to as well.
+    [Fact]
+    public void ItemWithNullName_DecaysLikeANormalItem()
+    {
+        AssertItem(UpdateOnce(null, 5, 10), sellIn: 4, quality: 9);
+    }
+
     // ---- Aged Brie ----
 
     [Fact]
@@ -119,20 +128,26 @@ public class CharacterizationTest
     }
 
     // ---- Conjured ----
-    // The spec says conjured items should degrade twice as fast. They do not.
-    // These tests pin the current (incorrect) behavior on purpose, so that the
-    // refactor is provably behavior-preserving. Fixing the rule is a separate
-    // conversation — it changes the golden master.
+    // Unlike the tests above, these assert the *spec*, not the original code.
+    // The 2x decay rule was agreed and the golden master regenerated to match.
 
     [Fact]
-    public void ConjuredItem_BeforeSellBy_CurrentlyDegradesLikeANormalItem()
+    public void ConjuredItem_BeforeSellBy_LosesTwoQuality()
     {
-        AssertItem(UpdateOnce(Conjured, 3, 6), sellIn: 2, quality: 5);
+        AssertItem(UpdateOnce(Conjured, 3, 6), sellIn: 2, quality: 4);
     }
 
     [Fact]
-    public void ConjuredItem_PastSellBy_CurrentlyDegradesLikeANormalItem()
+    public void ConjuredItem_PastSellBy_LosesFourQuality()
     {
-        AssertItem(UpdateOnce(Conjured, 0, 6), sellIn: -1, quality: 4);
+        AssertItem(UpdateOnce(Conjured, 0, 6), sellIn: -1, quality: 2);
+    }
+
+    [Theory]
+    [InlineData(5, 1, 4, 0)]   // before sell-by, would go below 0
+    [InlineData(0, 3, -1, 0)]  // past sell-by, would go well below 0
+    public void ConjuredItem_QualityNeverGoesNegative(int sellIn, int quality, int expectedSellIn, int expectedQuality)
+    {
+        AssertItem(UpdateOnce(Conjured, sellIn, quality), expectedSellIn, expectedQuality);
     }
 }

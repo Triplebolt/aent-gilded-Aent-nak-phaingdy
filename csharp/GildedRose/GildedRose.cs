@@ -7,6 +7,7 @@ public class GildedRose
     const string AgedBrie = "Aged Brie";
     const string Sulfuras = "Sulfuras, Hand of Ragnaros";
     const string BackstagePasses = "Backstage passes to a TAFKAL80ETC concert";
+    const string ConjuredPrefix = "Conjured";
 
     const int MinQuality = 0;
     const int MaxQuality = 50;
@@ -51,6 +52,17 @@ public class GildedRose
 
             case BackstagePasses:
                 Increase(item, daysRemaining < 6 ? 3 : daysRemaining < 11 ? 2 : 1);
+                break;
+
+            // Conjured items degrade twice as fast as normal ones. Matched on
+            // prefix rather than exact name because the spec describes a whole
+            // supplier category, not the single "Conjured Mana Cake" we stock
+            // today.
+            // `string name` rather than `var name`: a type pattern does not
+            // match null, so a null-named item falls through to default and
+            // decays like a normal item, as it always has.
+            case string name when name.StartsWith(ConjuredPrefix):
+                Decrease(item, expired ? 4 : 2);
                 break;
 
             default:
