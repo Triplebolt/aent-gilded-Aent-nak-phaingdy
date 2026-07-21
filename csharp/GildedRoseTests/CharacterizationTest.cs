@@ -59,6 +59,15 @@ public class CharacterizationTest
         AssertItem(UpdateOnce(Normal, sellIn, quality), expectedSellIn, expectedQuality);
     }
 
+    // A null name is not something the inventory produces today, but the
+    // original implementation tolerated it (every check was a != against a
+    // literal), so the refactor has to as well.
+    [Fact]
+    public void ItemWithNullName_DecaysLikeANormalItem()
+    {
+        AssertItem(UpdateOnce(null, 5, 10), sellIn: 4, quality: 9);
+    }
+
     // ---- Aged Brie ----
 
     [Fact]
