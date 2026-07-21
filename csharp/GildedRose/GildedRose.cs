@@ -5,6 +5,7 @@ namespace GildedRoseKata;
 public class GildedRose
 {
     const string Sulfuras = "Sulfuras, Hand of Ragnaros";
+    const string AgedBrie = "Aged Brie";
 
     IList<Item> Items;
 
@@ -28,6 +29,12 @@ public class GildedRose
         // name, so those inner guards can go with it.
         if (item.Name == Sulfuras)
         {
+            return;
+        }
+
+        if (item.Name == AgedBrie)
+        {
+            UpdateAgedBrie(item);
             return;
         }
 
@@ -90,6 +97,22 @@ public class GildedRose
                     item.Quality = item.Quality + 1;
                 }
             }
+        }
+    }
+
+    // Gains 1 a day, and 1 again once past the sell-by date, never above 50.
+    static void UpdateAgedBrie(Item item)
+    {
+        if (item.Quality < 50)
+        {
+            item.Quality = item.Quality + 1;
+        }
+
+        item.SellIn = item.SellIn - 1;
+
+        if (item.SellIn < 0 && item.Quality < 50)
+        {
+            item.Quality = item.Quality + 1;
         }
     }
 }
