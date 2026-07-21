@@ -6,6 +6,7 @@ public class GildedRose
 {
     const string Sulfuras = "Sulfuras, Hand of Ragnaros";
     const string AgedBrie = "Aged Brie";
+    const string BackstagePasses = "Backstage passes to a TAFKAL80ETC concert";
 
     IList<Item> Items;
 
@@ -35,6 +36,12 @@ public class GildedRose
         if (item.Name == AgedBrie)
         {
             UpdateAgedBrie(item);
+            return;
+        }
+
+        if (item.Name == BackstagePasses)
+        {
+            UpdateBackstagePasses(item);
             return;
         }
 
@@ -97,6 +104,33 @@ public class GildedRose
                     item.Quality = item.Quality + 1;
                 }
             }
+        }
+    }
+
+    // Gains 1 a day, 2 within 10 days of the concert and 3 within 5, never above
+    // 50 — then becomes worthless the day after.
+    static void UpdateBackstagePasses(Item item)
+    {
+        if (item.Quality < 50)
+        {
+            item.Quality = item.Quality + 1;
+
+            if (item.SellIn < 11 && item.Quality < 50)
+            {
+                item.Quality = item.Quality + 1;
+            }
+
+            if (item.SellIn < 6 && item.Quality < 50)
+            {
+                item.Quality = item.Quality + 1;
+            }
+        }
+
+        item.SellIn = item.SellIn - 1;
+
+        if (item.SellIn < 0)
+        {
+            item.Quality = 0;
         }
     }
 
