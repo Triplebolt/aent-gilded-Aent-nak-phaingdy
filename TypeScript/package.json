@@ -1,0 +1,19 @@
+{
+  "name": "gilded-rose-kata",
+  "version": "1.0.0",
+  "description": "Gilded Rose kata in TypeScript",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "golden": "tsx test/golden-master-text-test.ts 30"
+  },
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vite-tsconfig-paths": "^5.1.0",
+    "vitest": "^3.0.0"
+  }
+}

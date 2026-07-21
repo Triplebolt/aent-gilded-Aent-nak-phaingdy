@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2022",
+    "strict": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "baseUrl": "./",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["app/*"]
+    }
+  },
+  "exclude": ["node_modules"]
+}

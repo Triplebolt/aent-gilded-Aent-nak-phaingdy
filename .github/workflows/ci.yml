@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: TypeScript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: TypeScript/package-lock.json
+      - run: npm ci
+      - name: Unit and approval tests
+        run: npm test
+      - name: Golden master
+        run: ../scripts/golden-master-check.sh ts
+
+  csharp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Unit and approval tests
+        run: dotnet test csharp/GildedRose.sln
+      - name: Golden master
+        run: ./scripts/golden-master-check.sh csharp
+
+  ci-ok:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [typescript, csharp]
+    steps:
+      - name: Verify all language jobs succeeded
+        run: |
+          [ "${{ contains(needs.*.result, 'failure') }}" = "false" ] && \
+          [ "${{ contains(needs.*.result, 'cancelled') }}" = "false" ] || exit 1
