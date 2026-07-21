@@ -4,9 +4,12 @@ namespace GildedRoseKata;
 
 public class GildedRose
 {
-    const string Sulfuras = "Sulfuras, Hand of Ragnaros";
     const string AgedBrie = "Aged Brie";
+    const string Sulfuras = "Sulfuras, Hand of Ragnaros";
     const string BackstagePasses = "Backstage passes to a TAFKAL80ETC concert";
+
+    const int MinQuality = 0;
+    const int MaxQuality = 50;
 
     IList<Item> Items;
 
@@ -25,128 +28,52 @@ public class GildedRose
 
     static void UpdateItem(Item item)
     {
-        // Legendary: never has to be sold and never degrades. Returning early is
-        // behavior-preserving because every branch below already excluded it by
-        // name, so those inner guards can go with it.
+        // Legendary: never has to be sold and never degrades.
         if (item.Name == Sulfuras)
         {
             return;
         }
 
-        if (item.Name == AgedBrie)
+        var daysRemaining = item.SellIn;
+        item.SellIn = daysRemaining - 1;
+        var expired = item.SellIn < 0;
+
+        switch (item.Name)
         {
-            UpdateAgedBrie(item);
-            return;
-        }
+            case AgedBrie:
+                Increase(item, expired ? 2 : 1);
+                break;
 
-        if (item.Name == BackstagePasses)
-        {
-            UpdateBackstagePasses(item);
-            return;
-        }
+            // Worthless once the concert has passed.
+            case BackstagePasses when expired:
+                item.Quality = MinQuality;
+                break;
 
-        if (item.Name != "Aged Brie" && item.Name != "Backstage passes to a TAFKAL80ETC concert")
-        {
-            if (item.Quality > 0)
-            {
-                item.Quality = item.Quality - 1;
-            }
-        }
-        else
-        {
-            if (item.Quality < 50)
-            {
-                item.Quality = item.Quality + 1;
+            case BackstagePasses:
+                Increase(item, daysRemaining < 6 ? 3 : daysRemaining < 11 ? 2 : 1);
+                break;
 
-                if (item.Name == "Backstage passes to a TAFKAL80ETC concert")
-                {
-                    if (item.SellIn < 11)
-                    {
-                        if (item.Quality < 50)
-                        {
-                            item.Quality = item.Quality + 1;
-                        }
-                    }
-
-                    if (item.SellIn < 6)
-                    {
-                        if (item.Quality < 50)
-                        {
-                            item.Quality = item.Quality + 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        item.SellIn = item.SellIn - 1;
-
-        if (item.SellIn < 0)
-        {
-            if (item.Name != "Aged Brie")
-            {
-                if (item.Name != "Backstage passes to a TAFKAL80ETC concert")
-                {
-                    if (item.Quality > 0)
-                    {
-                        item.Quality = item.Quality - 1;
-                    }
-                }
-                else
-                {
-                    item.Quality = item.Quality - item.Quality;
-                }
-            }
-            else
-            {
-                if (item.Quality < 50)
-                {
-                    item.Quality = item.Quality + 1;
-                }
-            }
+            default:
+                Decrease(item, expired ? 2 : 1);
+                break;
         }
     }
 
-    // Gains 1 a day, 2 within 10 days of the concert and 3 within 5, never above
-    // 50 — then becomes worthless the day after.
-    static void UpdateBackstagePasses(Item item)
+    // Stepwise rather than clamped so that items already outside [0, 50] keep
+    // the behavior the original implementation gave them.
+    static void Increase(Item item, int steps)
     {
-        if (item.Quality < 50)
+        for (var i = 0; i < steps && item.Quality < MaxQuality; i++)
         {
-            item.Quality = item.Quality + 1;
-
-            if (item.SellIn < 11 && item.Quality < 50)
-            {
-                item.Quality = item.Quality + 1;
-            }
-
-            if (item.SellIn < 6 && item.Quality < 50)
-            {
-                item.Quality = item.Quality + 1;
-            }
-        }
-
-        item.SellIn = item.SellIn - 1;
-
-        if (item.SellIn < 0)
-        {
-            item.Quality = 0;
+            item.Quality++;
         }
     }
 
-    // Gains 1 a day, and 1 again once past the sell-by date, never above 50.
-    static void UpdateAgedBrie(Item item)
+    static void Decrease(Item item, int steps)
     {
-        if (item.Quality < 50)
+        for (var i = 0; i < steps && item.Quality > MinQuality; i++)
         {
-            item.Quality = item.Quality + 1;
-        }
-
-        item.SellIn = item.SellIn - 1;
-
-        if (item.SellIn < 0 && item.Quality < 50)
-        {
-            item.Quality = item.Quality + 1;
+            item.Quality--;
         }
     }
 }
